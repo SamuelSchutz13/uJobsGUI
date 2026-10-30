@@ -30,7 +30,7 @@ createApp(App)
     lang: langPtBR,
     iconSet,
     // The chrome is ink: the one primary action is near-black, never a brand hue.
-    config: { dark: false, brand: { primary: '#141414', secondary: '#e5e5e5', negative: '#c4242a', positive: '#2e7d32' } }
+    config: { dark: 'auto', brand: { primary: '#141414', secondary: '#e5e5e5', negative: '#c4242a', positive: '#2e7d32' } }
   })
   .use(router)
   .mount('#app')
