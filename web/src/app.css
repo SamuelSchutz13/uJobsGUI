@@ -120,6 +120,12 @@ code { font-family: "Geist Mono", ui-monospace, monospace; font-size: 13px; }
 .fit-bar i { display: block; height: 100%; background: var(--fit); }
 .fit-num { width: 24px; text-align: right; font-variant-numeric: tabular-nums; }
 
+.q-tabs__arrow { text-shadow: none; }
+
+@media (max-width: 599px) {
+  .fit-bar { display: none; }
+}
+
 @media (max-width: 1023px) {
   .canvas { padding: 20px 16px 40px; }
   .title-row { flex-direction: column; }
