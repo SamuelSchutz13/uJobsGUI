@@ -27,6 +27,15 @@ func Chi(s *core.Service, static http.Handler) http.Handler {
 		r.Get("/info", func(w http.ResponseWriter, _ *http.Request) { reply(w, Info{s.Root, "chi"}, nil) })
 		r.Get("/tracker", func(w http.ResponseWriter, _ *http.Request) { v, err := s.Tracker(); reply(w, v, err) })
 		r.Get("/jobs", func(w http.ResponseWriter, _ *http.Request) { v, err := s.Jobs(); reply(w, v, err) })
+		r.Post("/jobs/status", func(w http.ResponseWriter, req *http.Request) {
+			var body JobStatusReq
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(ErrBody{err.Error()})
+				return
+			}
+			reply(w, body, s.SetJobStatus(body.Key, body.Status))
+		})
 		r.Get("/portals", func(w http.ResponseWriter, _ *http.Request) { v, err := s.Portals(); reply(w, v, err) })
 		r.Get("/search", func(w http.ResponseWriter, req *http.Request) {
 			q := req.URL.Query()

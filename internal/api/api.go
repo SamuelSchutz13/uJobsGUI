@@ -4,6 +4,7 @@
 //	GET  /api/info               checkout folder and router in use
 //	GET  /api/tracker            job_search_tracker.csv
 //	GET  /api/jobs               job_scraper/seen_jobs.json
+//	POST /api/jobs/status        {"key","status"}; "skipped" removes a posting from the lists
 //	GET  /api/portals            installed portal CLIs
 //	GET  /api/search?portal=&q=  run one portal CLI
 //	GET  /api/commands           slash commands of the checkout
@@ -53,6 +54,11 @@ type Info struct {
 type StartReq struct {
 	Command string `json:"command"`
 	Args    string `json:"args"`
+}
+
+type JobStatusReq struct {
+	Key    string `json:"key"`
+	Status string `json:"status"`
 }
 
 type ReplyReq struct {

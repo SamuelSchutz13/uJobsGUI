@@ -11,9 +11,13 @@ O ai-job-search é um framework de busca de emprego que roda no Claude Code. Ele
 | Página | Fonte no ai-job-search |
 |---|---|
 | **Candidaturas**: suas candidaturas, com links para o CV, a carta e a vaga, e atalhos para `/interview` e `/outcome` | `job_search_tracker.csv`, `cv/`, `cover_letters/` |
-| **Vagas encontradas**: o histórico de `/scrape` e `/rank`, com o fit e um botão `/apply` | `job_scraper/seen_jobs.json` |
+| **Vagas encontradas**: o histórico de `/scrape` e `/rank`, com o fit, um botão `/apply` e a opção de remover vagas do painel | `job_scraper/seen_jobs.json` |
 | **Buscar nos portais**: busca direta em cada portal | os CLIs em `.agents/skills/*/cli` |
 | **Comandos**: roda qualquer comando (`/setup`, `/scrape`, `/apply <url>`…) e permite responder às perguntas do Claude | `claude -p` na pasta do ai-job-search |
+
+Tema claro, escuro ou o do sistema, escolhido no rodapé da barra lateral.
+
+**Remover uma vaga** não apaga nada. A vaga é marcada como `skipped`, a mesma situação que o `/scrape` usa para o que ele descarta. Assim o `/rank` não volta a pontuá-la e o `/scrape` não a traz de novo. Ela aparece na aba *Removidas*, onde pode ser restaurada.
 
 ## Requisitos
 

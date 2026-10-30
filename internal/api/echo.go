@@ -25,6 +25,13 @@ func Echo(s *core.Service, static http.Handler) http.Handler {
 	g.GET("/info", func(c echo.Context) error { return reply(c, Info{s.Root, "echo"}, nil) })
 	g.GET("/tracker", func(c echo.Context) error { v, err := s.Tracker(); return reply(c, v, err) })
 	g.GET("/jobs", func(c echo.Context) error { v, err := s.Jobs(); return reply(c, v, err) })
+	g.POST("/jobs/status", func(c echo.Context) error {
+		var req JobStatusReq
+		if err := c.Bind(&req); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrBody{err.Error()})
+		}
+		return reply(c, req, s.SetJobStatus(req.Key, req.Status))
+	})
 	g.GET("/portals", func(c echo.Context) error { v, err := s.Portals(); return reply(c, v, err) })
 	g.GET("/search", func(c echo.Context) error {
 		v, err := s.Search(c.Request().Context(), c.QueryParam("portal"), c.QueryParam("q"))

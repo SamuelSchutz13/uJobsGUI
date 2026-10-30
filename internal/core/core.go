@@ -121,6 +121,82 @@ func (s *Service) Jobs() ([]map[string]any, error) {
 	return out, nil
 }
 
+// jobStatuses is the seen_jobs.json status vocabulary of the job-scraper skill.
+var jobStatuses = []string{"new", "skipped", "ranked", "expired", "unreachable"}
+
+// SetJobStatus changes one entry's status and keeps every other field. The GUI's
+// "remove" is status "skipped": /rank never selects it and /scrape still dedups against it.
+func (s *Service) SetJobStatus(key, status string) error {
+	if !slices.Contains(jobStatuses, status) {
+		return bad("situação %q inválida", status)
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	path := filepath.Join(s.Root, "job_scraper", "seen_jobs.json")
+	data, err := os.ReadFile(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	var doc map[string]json.RawMessage
+	if err := json.Unmarshal(data, &doc); err != nil {
+		return fmt.Errorf("seen_jobs.json: %w", err)
+	}
+	seen := doc
+	if inner, ok := doc["seen"]; ok {
+		seen = nil // a fresh map: decoding into doc itself would merge the two levels
+		if err := json.Unmarshal(inner, &seen); err != nil {
+			return fmt.Errorf("seen_jobs.json: %w", err)
+		}
+	}
+	var entry map[string]json.RawMessage
+	if raw, ok := seen[key]; !ok || json.Unmarshal(raw, &entry) != nil {
+		return fmt.Errorf("%w: vaga %q", ErrNotFound, key)
+	}
+	entry["status"], _ = json.Marshal(status)
+	if seen[key], err = marshal(entry); err != nil {
+		return err
+	}
+	if _, ok := doc["seen"]; ok {
+		if doc["seen"], err = marshal(seen); err != nil {
+			return err
+		}
+	}
+	out, err := marshal(doc)
+	if err != nil {
+		return err
+	}
+	// Atomic replace, as rank_state.py save_state does: a half-written file loses the scrape history.
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".seen_jobs.*.tmp")
+	if err != nil {
+		return err
+	}
+	_, werr := tmp.Write(append(out, '\n'))
+	cerr := tmp.Close()
+	if werr == nil && cerr == nil {
+		werr = os.Rename(tmp.Name(), path)
+	}
+	if werr != nil || cerr != nil {
+		os.Remove(tmp.Name())
+		return errors.Join(werr, cerr)
+	}
+	return nil
+}
+
+// marshal matches json.dump(indent=2, ensure_ascii=False) closely enough for a file other tools also write.
+func marshal(v any) ([]byte, error) {
+	var b bytes.Buffer
+	enc := json.NewEncoder(&b)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+	return bytes.TrimRight(b.Bytes(), "\n"), nil
+}
+
 // Portals lists the installed portal CLIs (.agents/skills/<name>-search/cli), discovered like install_portal_clis.py does.
 func (s *Service) Portals() ([]string, error) {
 	dirs, err := filepath.Glob(filepath.Join(s.Root, ".agents", "skills", "*", "cli", "src", "cli.ts"))
