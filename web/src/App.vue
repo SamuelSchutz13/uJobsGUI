@@ -42,10 +42,8 @@
         </div>
 
         <div class="sidebar-foot">
-          Interface para o
-          <a href="https://github.com/ai-job-search-dev/ai-job-search" target="_blank" rel="noopener">ai-job-search</a>,
-          que faz todo o trabalho.
-          <div v-if="info" class="muted">Servidor: {{ info.router }}</div>
+          Interface Web para o
+          <a href="https://github.com/ai-job-search-dev/ai-job-search" target="_blank" rel="noopener">ai-job-search</a>
         </div>
       </div>
     </q-drawer>
