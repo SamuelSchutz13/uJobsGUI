@@ -33,7 +33,10 @@
           <q-td :props="p">
             <span class="cell-main">{{ p.row.company }}</span>
             <span class="cell-sub">{{ p.row.role }}</span>
-            <span class="pill lt-sm q-mt-xs" :class="status(p.row.status)[1]">{{ status(p.row.status)[0] }}</span>
+            <span class="lt-sm row-tags">
+              <span class="pill" :class="status(p.row.status)[1]">{{ status(p.row.status)[0] }}</span>
+              <span v-if="!isFinal(p.row.status) && deadlineText(p.row.deadline).tone" class="pill" :class="deadlineText(p.row.deadline).tone">{{ deadlineText(p.row.deadline).text }}</span>
+            </span>
           </q-td>
         </template>
         <template #body-cell-status="p">
@@ -53,12 +56,15 @@
         </template>
         <template #body-cell-docs="p">
           <q-td :props="p">
-            <a v-if="p.row.cv_file" class="row-link" :href="fileUrl(p.row.cv_file)" target="_blank">{{ t('apps.cv') }}</a>
-            <a v-if="p.row.cover_letter_file" class="row-link" :href="fileUrl(p.row.cover_letter_file)" target="_blank">{{ t('apps.letter') }}</a>
-            <a v-if="p.row.source" class="row-link" :href="p.row.source" target="_blank" rel="noopener noreferrer">{{ t('apps.posting') }}</a>
+            <a v-if="p.row.cv_file" class="row-link gt-xs" :href="fileUrl(p.row.cv_file)" target="_blank">{{ t('apps.cv') }}</a>
+            <a v-if="p.row.cover_letter_file" class="row-link gt-xs" :href="fileUrl(p.row.cover_letter_file)" target="_blank">{{ t('apps.letter') }}</a>
+            <a v-if="p.row.source" class="row-link gt-xs" :href="p.row.source" target="_blank" rel="noopener noreferrer">{{ t('apps.posting') }}</a>
             <q-btn flat round dense size="sm" icon="o_more_horiz" :aria-label="t('apps.more', { name: p.row.company })">
               <q-menu auto-close>
                 <q-list dense style="min-width: 200px">
+                  <q-item v-if="p.row.cv_file" class="lt-sm" clickable tag="a" :href="fileUrl(p.row.cv_file)" target="_blank"><q-item-section>{{ t('apps.cv') }}</q-item-section></q-item>
+                  <q-item v-if="p.row.cover_letter_file" class="lt-sm" clickable tag="a" :href="fileUrl(p.row.cover_letter_file)" target="_blank"><q-item-section>{{ t('apps.letter') }}</q-item-section></q-item>
+                  <q-item v-if="p.row.source" class="lt-sm" clickable tag="a" :href="p.row.source" target="_blank" rel="noopener noreferrer"><q-item-section>{{ t('apps.posting') }}</q-item-section></q-item>
                   <q-item clickable :to="{ path: '/claude', query: { command: 'interview', args: `${p.row.company} ${p.row.role}` } }">
                     <q-item-section>{{ t('apps.interview') }}</q-item-section>
                   </q-item>
@@ -90,7 +96,7 @@ const columns = computed(() => [
   { name: 'company', label: t('apps.colCompany'), field: r => `${r.company} ${r.role}`, sortable: true, align: 'left' },
   { name: 'status', label: t('apps.colStatus'), field: 'status', sortable: true, align: 'left', classes: 'gt-xs', headerClasses: 'gt-xs' },
   { name: 'fit', label: t('apps.colFit'), field: fit, sortable: true, align: 'right', sort: (a, b) => (a ?? -1) - (b ?? -1) },
-  { name: 'deadline', label: t('apps.colDeadline'), field: 'deadline', sortable: true, align: 'right' },
+  { name: 'deadline', label: t('apps.colDeadline'), field: 'deadline', sortable: true, align: 'right', classes: 'gt-xs', headerClasses: 'gt-xs' },
   { name: 'docs', label: '', field: () => '', align: 'right' }
 ])
 
@@ -136,6 +142,7 @@ onMounted(async () => {
 <style scoped>
 .stages { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; margin-bottom: var(--gap); }
 .stage { padding: 16px 20px 18px; }
+.row-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .stage + .stage { border-left: 1px solid var(--rule); }
 .stage-label { color: var(--muted); font-size: 13px; }
 .stage-value { font-size: 30px; line-height: 38px; font-weight: 400; margin-top: 4px; }
