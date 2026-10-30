@@ -18,7 +18,7 @@ func Chi(s *core.Service, static http.Handler) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		if err != nil {
 			w.WriteHeader(Status(err))
-			v = ErrBody{err.Error()}
+			v = Body(err)
 		}
 		json.NewEncoder(w).Encode(v)
 	}
@@ -31,7 +31,7 @@ func Chi(s *core.Service, static http.Handler) http.Handler {
 			var body JobStatusReq
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(ErrBody{err.Error()})
+				json.NewEncoder(w).Encode(BadRequest(err))
 				return
 			}
 			reply(w, body, s.SetJobStatus(body.Key, body.Status))
@@ -48,7 +48,7 @@ func Chi(s *core.Service, static http.Handler) http.Handler {
 			var body StartReq
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(ErrBody{err.Error()})
+				json.NewEncoder(w).Encode(BadRequest(err))
 				return
 			}
 			v, err := s.Start(body.Command, body.Args)
@@ -62,7 +62,7 @@ func Chi(s *core.Service, static http.Handler) http.Handler {
 			var body ReplyReq
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(ErrBody{err.Error()})
+				json.NewEncoder(w).Encode(BadRequest(err))
 				return
 			}
 			v, err := s.Reply(chi.URLParam(req, "id"), body.Message)

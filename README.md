@@ -104,7 +104,7 @@ internal/core  →  job_search_tracker.csv, job_scraper/seen_jobs.json, cv/, cov
 - **One core, three routers.** All the logic sits in `internal/core`, which knows nothing about HTTP frameworks. `gin.go`, `echo.go` and `chi.go` each wire the same routes to it.
 - **Nothing reimplemented.** Job data comes from the files ai-job-search writes; searches and commands run its own tools, in its folder, with its own `.claude/settings.json` permissions.
 - **Careful writes.** Removing a job changes only that entry's `status` and replaces the file atomically, the same way ai-job-search's `rank_state.py` does.
-- **Languages** live in `web/src/i18n.js`; switching also switches Quasar's own texts. **Theme and language** are remembered in the browser.
+- **Languages** live in `web/src/i18n.js`; switching also switches Quasar's own texts. Server errors arrive with a code (`unknown_command`, `portal_not_found`…) that the page shows in your language, with English as the fallback. **Theme and language** are remembered in the browser.
 
 ### Security
 
@@ -141,7 +141,6 @@ web/
 - **Runs live in memory.** Restarting the server forgets the Commands list (the files ai-job-search wrote stay).
 - **Restore** does not know the status a job had before it was removed: a scored job goes back to Scored, any other to the `/rank` queue. **Undo**, right after removing, restores it exactly.
 - The job boards that ship with ai-job-search are mostly Danish, plus LinkedIn and Freehire. Use `/add-portal` in ai-job-search to add one for your country.
-- Messages that come from the server (errors) are in Portuguese.
 
 ## Credits
 

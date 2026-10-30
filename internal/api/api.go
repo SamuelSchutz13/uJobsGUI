@@ -41,7 +41,7 @@ func New(router string, s *core.Service, web fs.FS) (http.Handler, error) {
 	case "chi":
 		h = Chi(s, static)
 	default:
-		return nil, fmt.Errorf("router %q desconhecido (use gin, echo ou chi)", router)
+		return nil, fmt.Errorf("unknown router %q (use gin, echo or chi)", router)
 	}
 	return Guard(h), nil
 }
@@ -65,9 +65,24 @@ type ReplyReq struct {
 	Message string `json:"message"`
 }
 
+// ErrBody is every error response. Code and Arg come from core.Error so the
+// frontend can translate; Error is the English text.
 type ErrBody struct {
 	Error string `json:"error"`
+	Code  string `json:"code,omitempty"`
+	Arg   string `json:"arg,omitempty"`
 }
+
+func Body(err error) ErrBody {
+	var e *core.Error
+	if errors.As(err, &e) {
+		return ErrBody{e.Msg, e.Code, e.Arg}
+	}
+	return ErrBody{Error: err.Error()}
+}
+
+// BadRequest is the body for a request whose JSON could not be read.
+func BadRequest(err error) ErrBody { return ErrBody{err.Error(), "bad_request", ""} }
 
 // Status maps core errors to HTTP codes, identically for every router.
 func Status(err error) int {
@@ -90,7 +105,7 @@ func Static(web fs.FS) http.Handler {
 			return
 		}
 		if _, err := fs.Stat(web, "index.html"); err != nil {
-			http.Error(w, "frontend não compilado: rode `npm run build` em web/", http.StatusNotFound)
+			http.Error(w, "frontend not built: run `npm run build` in web/", http.StatusNotFound)
 			return
 		}
 		http.ServeFileFS(w, r, web, "index.html")
@@ -106,7 +121,7 @@ func Guard(next http.Handler) http.Handler {
 			host = r.Host
 		}
 		if ip := net.ParseIP(strings.Trim(host, "[]")); host != "localhost" && (ip == nil || !ip.IsLoopback()) {
-			http.Error(w, "host não permitido", http.StatusForbidden)
+			http.Error(w, "host not allowed", http.StatusForbidden)
 			return
 		}
 		if r.Method != http.MethodGet && r.Method != http.MethodHead &&

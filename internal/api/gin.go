@@ -15,7 +15,7 @@ func Gin(s *core.Service, static http.Handler) http.Handler {
 
 	reply := func(c *gin.Context, v any, err error) {
 		if err != nil {
-			c.JSON(Status(err), ErrBody{err.Error()})
+			c.JSON(Status(err), Body(err))
 			return
 		}
 		c.JSON(http.StatusOK, v)
@@ -28,7 +28,7 @@ func Gin(s *core.Service, static http.Handler) http.Handler {
 	g.POST("/jobs/status", func(c *gin.Context) {
 		var req JobStatusReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, ErrBody{err.Error()})
+			c.JSON(http.StatusBadRequest, BadRequest(err))
 			return
 		}
 		reply(c, req, s.SetJobStatus(req.Key, req.Status))
@@ -47,7 +47,7 @@ func Gin(s *core.Service, static http.Handler) http.Handler {
 	g.POST("/runs", func(c *gin.Context) {
 		var req StartReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, ErrBody{err.Error()})
+			c.JSON(http.StatusBadRequest, BadRequest(err))
 			return
 		}
 		v, err := s.Start(req.Command, req.Args)
@@ -57,7 +57,7 @@ func Gin(s *core.Service, static http.Handler) http.Handler {
 	g.POST("/runs/:id/reply", func(c *gin.Context) {
 		var req ReplyReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, ErrBody{err.Error()})
+			c.JSON(http.StatusBadRequest, BadRequest(err))
 			return
 		}
 		v, err := s.Reply(c.Param("id"), req.Message)
