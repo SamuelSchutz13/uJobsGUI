@@ -2,9 +2,9 @@
   <q-page class="canvas column no-wrap">
     <div class="title-row">
       <div>
-        <h1>Buscar nos portais</h1>
+        <h1>{{ t('search.title') }}</h1>
         <p class="finding">
-          Pesquisa direto em um portal, pelos buscadores do ai-job-search. Para buscar em todos e guardar o histórico, use
+          {{ t('search.intro') }}
           <router-link :to="{ path: '/claude', query: { command: 'scrape' } }">/scrape</router-link>.
         </p>
       </div>
@@ -12,13 +12,13 @@
 
     <section class="panel results">
       <q-form class="search-form" @submit="search">
-        <q-select v-model="portal" :options="portals" :option-label="portalName" label="Portal" outlined dense emit-value map-options class="portal" />
-        <q-input v-model="query" label="Cargo, área ou palavra-chave" outlined dense class="query" autofocus />
-        <q-btn type="submit" unelevated color="primary" label="Buscar" :loading="loading" :disable="!portal || !query.trim()" />
+        <q-select v-model="portal" :options="portals" :option-label="portalName" :label="t('search.portal')" outlined dense emit-value map-options class="portal" />
+        <q-input v-model="query" :label="t('search.query')" outlined dense class="query" autofocus />
+        <q-btn type="submit" unelevated color="primary" :label="t('search.go')" :loading="loading" :disable="!portal || !query.trim()" />
       </q-form>
 
       <div v-if="!searched" class="empty">
-        <p>Escolha um dos {{ portals.length }} portais instalados no ai-job-search e busque.</p>
+        <p>{{ t('search.pick', { n: portals.length }) }}</p>
         <div class="portal-list">
           <q-btn v-for="p in portals" :key="p" unelevated no-caps :class="p === portal ? 'bg-primary text-white' : 'btn-secondary'"
                  :label="portalName(p)" :aria-pressed="p === portal" @click="portal = p" />
@@ -26,7 +26,7 @@
       </div>
       <q-table v-else class="ledger" flat :rows="rows" :columns="columns" row-key="_i" :pagination="{ rowsPerPage: 20 }"
                :rows-per-page-options="[20, 50, 0]" hide-bottom-space
-               :no-data-label="searched ? 'Nenhuma vaga para essa busca.' : 'Os resultados aparecem aqui.'">
+               :no-data-label="t('search.none')">
         <template #body-cell-title="p">
           <q-td :props="p">
             <span class="cell-main">{{ p.value || '—' }}</span>
@@ -35,8 +35,8 @@
         </template>
         <template #body-cell-actions="p">
           <q-td :props="p">
-            <a v-if="p.row._url" class="row-link" :href="p.row._url" target="_blank" rel="noopener noreferrer">Abrir</a>
-            <q-btn v-if="p.row._url" flat dense no-caps label="Candidatar" :to="{ path: '/claude', query: { command: 'apply', args: p.row._url } }" />
+            <a v-if="p.row._url" class="row-link" :href="p.row._url" target="_blank" rel="noopener noreferrer">{{ t('jobs.open') }}</a>
+            <q-btn v-if="p.row._url" flat dense no-caps :label="t('jobs.apply')" :to="{ path: '/claude', query: { command: 'apply', args: p.row._url } }" />
           </q-td>
         </template>
       </q-table>
@@ -45,8 +45,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { get } from '../api.js'
+import { t } from '../i18n.js'
 
 const portals = ref([])
 const portal = ref(null)
@@ -58,11 +59,11 @@ const searched = ref(false)
 const portalName = p => p ? p.replace(/-search$/, '').replace(/^./, c => c.toUpperCase()) : ''
 // Each portal CLI shapes its JSON a little differently; take the first field that exists.
 const pick = (o, ...keys) => keys.map(k => o[k]).find(v => typeof v === 'string' && v) || ''
-const columns = [
-  { name: 'title', label: 'Vaga', field: r => pick(r, 'title', 'headline', 'jobTitle', 'name'), align: 'left' },
-  { name: 'date', label: 'Publicada', field: r => pick(r, 'date', 'published', 'postedAt', 'publishedDate').slice(0, 10) || '—', align: 'right', classes: 'num muted' },
+const columns = computed(() => [
+  { name: 'title', label: t('jobs.colJob'), field: r => pick(r, 'title', 'headline', 'jobTitle', 'name'), align: 'left' },
+  { name: 'date', label: t('search.colPublished'), field: r => pick(r, 'date', 'published', 'postedAt', 'publishedDate').slice(0, 10) || '—', align: 'right', classes: 'num muted' },
   { name: 'actions', label: '', field: () => '', align: 'right' }
-]
+])
 
 onMounted(async () => {
   portals.value = await get('/api/portals')
