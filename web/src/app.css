@@ -15,10 +15,40 @@
   --pill-negative-bg: #ffedea; --pill-negative-ink: #831c1e;
   --pill-warning-bg: #fffbeb; --pill-warning-ink: #92400e;
   --pill-neutral-bg: #eeeeee; --pill-neutral-ink: #3d3d3d;
+  --hover: #eaedf1;
+  --subtle: #f7f8fa;
+  --ink-2: #3d3d3d;
+  --secondary: #e5e5e5;
+  --primary-bg: #141414; --primary-ink: #ffffff;
   --radius-card: 8px;
   --radius-control: 6px;
   --gap: 12px;
   --pad: 24px;
+}
+
+/* Dark: true neutral greys, elevation by lightness, the fit hue lifted to keep 3:1 on dark.
+   Quasar sets body--dark from the toggle (or the OS setting on "auto"). */
+body.body--dark {
+  --ground: #0f1011;
+  --surface: #17181a;
+  --raised: #232427;
+  --active: #26282b;
+  --border: #2a2c2f;
+  --rule: #212225;
+  --control: #3a3c40;
+  --text: #ececec;
+  --muted: #9c9fa4;
+  --fit: #5b9cf5;
+  --fit-track: #22324a;
+  --hover: #1f2023;
+  --subtle: #1b1c1e;
+  --ink-2: #c8cacd;
+  --secondary: #2a2c2f;
+  --primary-bg: #ececec; --primary-ink: #0f1011;
+  --pill-positive-bg: #12301d; --pill-positive-ink: #a6e9bb;
+  --pill-negative-bg: #3a1517; --pill-negative-ink: #ffb8b3;
+  --pill-warning-bg: #33270b; --pill-warning-ink: #f3c76c;
+  --pill-neutral-bg: #26282b; --pill-neutral-ink: #d4d6d9;
 }
 
 body {
@@ -53,7 +83,13 @@ code { font-family: "Geist Mono", ui-monospace, monospace; font-size: 13px; }
 /* Buttons: square-ish, flat, near-black primary and grey secondary */
 .q-btn { border-radius: var(--radius-control); font-weight: 500; letter-spacing: 0; text-transform: none; }
 .q-btn:before { box-shadow: none !important; }
-.btn-secondary { background: #e5e5e5; color: var(--text); }
+.btn-secondary { background: var(--secondary); color: var(--text); }
+/* The one primary action is ink: near-black on light, near-white on dark. */
+.q-btn.bg-primary { background: var(--primary-bg) !important; color: var(--primary-ink) !important; }
+.body--dark .q-field--outlined .q-field__control:before { border-color: var(--control); }
+.body--dark .q-field__native, .body--dark .q-field__label, .body--dark .q-field__marginal { color: var(--text); }
+.body--dark .q-menu, .body--dark .q-dialog .q-card { background: var(--raised); color: var(--text); }
+.body--dark .q-table__bottom, .body--dark .q-table__bottom .q-field__native { color: var(--muted); }
 .q-field--outlined .q-field__control { border-radius: var(--radius-control); background: var(--surface); }
 .q-field--outlined .q-field__control:before { border-color: var(--control); }
 
@@ -62,7 +98,7 @@ code { font-family: "Geist Mono", ui-monospace, monospace; font-size: 13px; }
 .ledger .q-table th { font-size: 12px; font-weight: 400; color: var(--muted); height: 36px; border-bottom: 1px solid var(--border); }
 .ledger .q-table td { font-size: 14px; height: 48px; border-bottom: 1px solid var(--rule); }
 .ledger .q-table tbody tr:last-child td { border-bottom: 0; }
-.ledger .q-table tbody tr:hover > td { background: #f7f8fa; }
+.ledger .q-table tbody tr:hover > td { background: var(--subtle); }
 .ledger .q-table td.text-right, .ledger .q-table th.text-right { font-variant-numeric: tabular-nums; }
 .ledger .q-table__bottom { font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule); }
 .ledger .q-table__bottom--nodata { color: var(--muted); }

@@ -11,9 +11,9 @@
       <div class="column full-height no-wrap">
         <div class="brand">
           <svg class="mark" viewBox="0 0 28 28" aria-hidden="true">
-            <rect x="3" y="7" width="18" height="16" rx="2" fill="none" stroke="#141414" stroke-width="2" />
-            <path d="M3 9l9 7 9-7" fill="none" stroke="#141414" stroke-width="2" />
-            <circle cx="22" cy="7" r="4" fill="#1d5fbf" />
+            <rect x="3" y="7" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+            <path d="M3 9l9 7 9-7" fill="none" stroke="currentColor" stroke-width="2" />
+            <circle cx="22" cy="7" r="4" fill="var(--fit)" />
           </svg>
           <div>
             <div class="brand-name">uJobs</div>
@@ -32,6 +32,15 @@
           </router-link>
         </nav>
 
+        <div class="theme">
+          <q-btn-toggle v-model="theme" spread no-caps unelevated dense toggle-color="primary" class="theme-toggle"
+                        aria-label="Tema" :options="[
+                          { label: 'Claro', value: 'light' },
+                          { label: 'Escuro', value: 'dark' },
+                          { label: 'Sistema', value: 'auto' }
+                        ]" />
+        </div>
+
         <div class="sidebar-foot">
           Interface para o
           <a href="https://github.com/ai-job-search-dev/ai-job-search" target="_blank" rel="noopener">ai-job-search</a>,
@@ -48,11 +57,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import { get } from './api.js'
 
+const $q = useQuasar()
 const drawer = ref(false)
+
+// A per-browser preference: storage may be blocked, so the OS setting is the fallback.
+const read = () => { try { return localStorage.getItem('ujobs-theme') } catch { return null } }
+const theme = ref(['light', 'dark', 'auto'].includes(read()) ? read() : 'auto')
+watch(theme, t => {
+  $q.dark.set(t === 'auto' ? 'auto' : t === 'dark')
+  try { localStorage.setItem('ujobs-theme', t) } catch {}
+}, { immediate: true })
 const info = ref(null)
 const route = useRoute()
 const links = [
@@ -77,10 +96,14 @@ onMounted(async () => { info.value = await get('/api/info') })
 .nav { padding: 0 10px; flex: 1; }
 .nav-group { color: var(--muted); font-size: 12px; padding: 22px 10px 8px; }
 .nav-group:first-child { padding-top: 6px; }
-.nav-item { display: flex; align-items: center; gap: 10px; height: 32px; margin-bottom: 2px; padding: 0 10px; border-radius: 6px; color: #3d3d3d; text-decoration: none; font-size: 14px; }
-.nav-item:hover { background: #eaedf1; color: var(--text); }
+.nav-item { display: flex; align-items: center; gap: 10px; height: 32px; margin-bottom: 2px; padding: 0 10px; border-radius: 6px; color: var(--ink-2); text-decoration: none; font-size: 14px; }
+.nav-item:hover { background: var(--hover); color: var(--text); }
 .nav-item.router-link-active { background: var(--active); color: var(--text); font-weight: 500; }
 .nav-item:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; }
+.theme { padding: 0 20px 8px; }
+.theme-toggle { border: 1px solid var(--border); border-radius: 6px; background: var(--surface); }
+.theme-toggle .q-btn { color: var(--muted); font-size: 12px; min-height: 30px; }
+.mark { color: var(--text); }
 .sidebar-foot { padding: 16px 20px 20px; font-size: 12px; line-height: 1.5; color: var(--muted); }
 .sidebar-foot a { color: var(--text); }
 .mobile-bar { background: var(--ground); color: var(--text); border-bottom: 1px solid var(--border); }

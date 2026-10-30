@@ -180,14 +180,14 @@ async function reply () {
 .runs-empty { padding: 8px; font-size: 13px; }
 .run { display: block; padding: 12px; border-radius: 6px; text-decoration: none; color: var(--text); }
 .run + .run { margin-top: 2px; }
-.run:hover { background: #eaedf1; }
+.run:hover { background: var(--hover); }
 .run.active { background: var(--active); }
 .run:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; }
 .run-line, .run-sub { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .run-cmd { font-weight: 600; }
 .run-time { color: var(--muted); font-size: 12px; }
 .run-sub { margin-top: 4px; }
-.run-arg { font-size: 13px; color: #3d3d3d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.run-arg { font-size: 13px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
 .open { padding: 32px 40px; display: flex; flex-direction: column; min-width: 0; }
 .open-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
@@ -198,16 +198,16 @@ async function reply () {
 .reference h2 { font-size: 16px; font-weight: 600; margin: 0 0 8px; line-height: 24px; }
 .ref-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; width: 100%; text-align: left; padding: 10px 12px; border: 0; border-radius: 6px; background: transparent; font: inherit; color: var(--text); cursor: pointer; }
 .ref-row + .ref-row { border-top: 1px solid var(--rule); border-radius: 0; }
-.ref-row:hover, .ref-row.active { background: #eaedf1; border-radius: 6px; }
+.ref-row:hover, .ref-row.active { background: var(--hover); border-radius: 6px; }
 .ref-row:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; }
 .ref-cmd { font-weight: 500; }
-.ref-desc { color: #3d3d3d; }
+.ref-desc { color: var(--ink-2); }
 .hint { margin: -8px 0 0; color: var(--muted); font-size: 13px; }
 
 .thread { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); flex: 1; }
 .turn { padding: 16px 20px; }
 .turn + .turn { border-top: 1px solid var(--rule); }
-.turn.user { background: #f7f8fa; }
+.turn.user { background: var(--subtle); }
 .who { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
 .text { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.55; max-width: 80ch; }
 .turn.user .text { font-weight: 500; }

@@ -15,6 +15,8 @@ O ai-job-search é um framework de busca de emprego que roda no Claude Code. Ele
 | **Buscar nos portais**: busca direta em cada portal | os CLIs em `.agents/skills/*/cli` |
 | **Comandos**: roda qualquer comando (`/setup`, `/scrape`, `/apply <url>`…) e permite responder às perguntas do Claude | `claude -p` na pasta do ai-job-search |
 
+Tema claro, escuro ou o do sistema, escolhido no rodapé da barra lateral.
+
 ## Requisitos
 
 - Um checkout do ai-job-search **já configurado**, seguindo o [SETUP.md](https://github.com/ai-job-search-dev/ai-job-search/blob/main/SETUP.md) dele: Claude Code, Bun, Python e LaTeX

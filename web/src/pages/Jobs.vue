@@ -13,7 +13,7 @@
 
     <section class="panel">
       <div class="panel-head">
-        <q-tabs v-model="view" dense no-caps inline-label active-color="dark" indicator-color="dark" class="views" align="left">
+        <q-tabs v-model="view" dense no-caps inline-label class="views" align="left">
           <q-tab v-for="v in views" :key="v.id" :name="v.id" :label="`${v.label} ${v.rows.length}`" />
         </q-tabs>
         <q-input v-model="filter" dense outlined debounce="200" placeholder="Filtrar" aria-label="Filtrar" style="width: 220px">
@@ -111,5 +111,6 @@ onMounted(async () => {
 <style scoped>
 .views :deep(.q-tab) { padding: 0 10px; min-height: 36px; color: var(--muted); }
 .views :deep(.q-tab--active) { color: var(--text); }
+.views :deep(.q-tab__indicator) { background: var(--text); }
 .views :deep(.q-tab__label) { font-size: 14px; font-weight: 500; }
 </style>
