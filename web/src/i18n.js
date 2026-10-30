@@ -12,6 +12,9 @@ const messages = {
     'nav.search': 'Buscar nos portais',
     'nav.commands': 'Comandos',
     'nav.openMenu': 'Abrir menu',
+    'nav.groupClaude': 'Claude Code',
+    'nav.collapse': 'Recolher menu',
+    'nav.expand': 'Expandir menu',
     'footer.for': 'Interface Web para o',
 
     'settings.title': 'Configurações',
@@ -167,6 +170,9 @@ const messages = {
     'nav.search': 'Search job boards',
     'nav.commands': 'Commands',
     'nav.openMenu': 'Open menu',
+    'nav.groupClaude': 'Claude Code',
+    'nav.collapse': 'Collapse sidebar',
+    'nav.expand': 'Expand sidebar',
     'footer.for': 'Web interface for',
 
     'settings.title': 'Settings',
