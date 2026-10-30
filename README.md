@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img alt="Go" src="https://img.shields.io/badge/Go-1.27-00add8?logo=go&logoColor=white" />
+  <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00add8?logo=go&logoColor=white" />
   <img alt="Gin" src="https://img.shields.io/badge/Gin-1.12-008ecf?logo=go&logoColor=white" />
   <img alt="Echo" src="https://img.shields.io/badge/Echo-4.16-00b4d8?logo=go&logoColor=white" />
   <img alt="Chi" src="https://img.shields.io/badge/Chi-5.5-555555?logo=go&logoColor=white" />
@@ -62,7 +62,7 @@
 You need:
 
 - an **ai-job-search folder already set up**, following its [SETUP.md](https://github.com/ai-job-search-dev/ai-job-search/blob/main/SETUP.md) (Claude Code, Bun, Python and LaTeX);
-- **Go 1.27+** and **Node 22+**, only to build.
+- **Go 1.26+** and **Node 22+**, only to build (an older Go from 1.21 on downloads 1.26 by itself).
 
 ```sh
 git clone https://github.com/SamuelSchutz13/uJobsGUI.git
