@@ -37,6 +37,7 @@
 - **Buscar nos portais**: uma busca direta em um portal instalado, pelos buscadores do próprio ai-job-search.
 - **Comandos**: roda qualquer comando do ai-job-search (`/setup`, `/scrape`, `/apply <url>`…) com `claude -p`, e deixa você responder às perguntas do Claude na mesma sessão.
 - **Configurações** (⚙ no topo): **tema claro, escuro ou do sistema** e **português ou inglês**, ambos lembrados.
+- **Barra lateral só com ícones**: *Recolher menu*, no pé da barra, deixa ela com 64px e só os ícones, com o nome de cada tela ao passar o mouse; ela fica assim até você expandir.
 - **Três backends, uma API**: `--router gin`, `--router echo` ou `--router chi`; a mesma bateria de testes roda nos três.
 
 ## Capturas

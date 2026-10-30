@@ -37,6 +37,7 @@
 - **Search job boards**: one search on one installed board, through ai-job-search's own search tools.
 - **Commands**: runs any ai-job-search command (`/setup`, `/scrape`, `/apply <url>`…) with `claude -p`, and lets you answer Claude's questions in the same session.
 - **Settings** (⚙ at the top): **light, dark or system theme** and **Portuguese or English**, both remembered.
+- **Icons-only sidebar**: *Collapse sidebar*, at its foot, shrinks it to a 64px column of icons with their names on hover; it stays that way until you expand it.
 - **Three backends, one API**: `--router gin`, `--router echo` or `--router chi`; the same test suite runs against all three.
 
 ## Screenshots
