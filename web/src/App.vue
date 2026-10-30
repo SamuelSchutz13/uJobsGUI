@@ -2,8 +2,8 @@
   <q-layout view="lHh lpR fFf">
     <q-header class="mobile-bar lt-md">
       <q-toolbar>
-        <q-btn flat round dense icon="o_menu" aria-label="Abrir menu" @click="drawer = !drawer" />
-        <q-toolbar-title class="mobile-title">{{ current?.label || 'uJobs' }}</q-toolbar-title>
+        <q-btn flat round dense icon="o_menu" :aria-label="t('nav.openMenu')" @click="drawer = !drawer" />
+        <q-toolbar-title class="mobile-title">{{ current ? t(current.label) : 'uJobs' }}</q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -21,28 +21,28 @@
           </div>
         </div>
 
-        <nav class="nav" aria-label="Principal">
-          <div class="nav-group">Busca</div>
+        <nav class="nav" :aria-label="t('nav.main')">
+          <div class="nav-group">{{ t('nav.groupSearch') }}</div>
           <router-link v-for="l in links.slice(0, 3)" :key="l.to" :to="l.to" class="nav-item">
-            <q-icon :name="l.icon" size="16px" />{{ l.label }}
+            <q-icon :name="l.icon" size="16px" />{{ t(l.label) }}
           </router-link>
           <div class="nav-group">Claude Code</div>
           <router-link :to="links[3].to" class="nav-item">
-            <q-icon :name="links[3].icon" size="16px" />{{ links[3].label }}
+            <q-icon :name="links[3].icon" size="16px" />{{ t(links[3].label) }}
           </router-link>
         </nav>
 
         <div class="theme">
           <q-btn-toggle v-model="theme" spread no-caps unelevated dense toggle-color="primary" class="theme-toggle"
-                        aria-label="Tema" :options="[
-                          { label: 'Claro', value: 'light' },
-                          { label: 'Escuro', value: 'dark' },
-                          { label: 'Sistema', value: 'auto' }
+                        :aria-label="t('settings.theme')" :options="[
+                          { label: t('theme.light'), value: 'light' },
+                          { label: t('theme.dark'), value: 'dark' },
+                          { label: t('theme.auto'), value: 'auto' }
                         ]" />
         </div>
 
         <div class="sidebar-foot">
-          Interface Web para o
+          {{ t('footer.for') }}
           <a href="https://github.com/ai-job-search-dev/ai-job-search" target="_blank" rel="noopener">ai-job-search</a>
         </div>
       </div>
@@ -59,6 +59,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import { get } from './api.js'
+import { t } from './i18n.js'
 
 const $q = useQuasar()
 const drawer = ref(false)
@@ -73,10 +74,10 @@ watch(theme, t => {
 const info = ref(null)
 const route = useRoute()
 const links = [
-  { to: '/candidaturas', icon: 'o_assignment', label: 'Candidaturas' },
-  { to: '/vagas', icon: 'o_work_outline', label: 'Vagas encontradas' },
-  { to: '/buscar', icon: 'o_search', label: 'Buscar nos portais' },
-  { to: '/claude', icon: 'o_terminal', label: 'Comandos' }
+  { to: '/candidaturas', icon: 'o_assignment', label: 'nav.applications' },
+  { to: '/vagas', icon: 'o_work_outline', label: 'nav.jobs' },
+  { to: '/buscar', icon: 'o_search', label: 'nav.search' },
+  { to: '/claude', icon: 'o_terminal', label: 'nav.commands' }
 ]
 const current = computed(() => links.find(l => route.path.startsWith(l.to)))
 const folder = computed(() => info.value?.root.split(/[\\/]/).filter(Boolean).pop() || '')
