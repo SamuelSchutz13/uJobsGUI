@@ -55,13 +55,14 @@ func TestRoutersAgree(t *testing.T) {
 		{"POST", "/api/jobs/status", "application/json", `{"key":"k1","status":"skipped"}`, 200, `"status":"skipped"`},
 		{"GET", "/api/jobs", "", "", 200, `"status":"skipped"`},
 		{"POST", "/api/jobs/status", "application/json", `{"key":"k1","status":"ranked"}`, 200, `"status":"ranked"`},
-		{"POST", "/api/jobs/status", "application/json", `{"key":"k1","status":"deleted"}`, 400, "inválida"},
-		{"POST", "/api/jobs/status", "application/json", `{"key":"nope","status":"skipped"}`, 404, "error"},
+		{"POST", "/api/jobs/status", "application/json", `{"key":"k1","status":"deleted"}`, 400, `"code":"bad_status"`},
+		{"POST", "/api/jobs/status", "application/json", `{"key":"nope","status":"skipped"}`, 404, `"code":"job_not_found"`},
 		{"GET", "/api/commands", "", "", 200, `["apply","scrape"]`},
-		{"GET", "/api/search?portal=nope&q=x", "", "", 404, "error"},
-		{"GET", "/api/search?portal=jobindex-search&q=", "", "", 400, "error"},
-		{"GET", "/api/runs/none", "", "", 404, "error"},
-		{"POST", "/api/runs", "application/json", `{"command":"rm -rf"}`, 400, "comando desconhecido"},
+		{"GET", "/api/search?portal=nope&q=x", "", "", 404, `"code":"portal_not_found"`},
+		{"GET", "/api/search?portal=jobindex-search&q=", "", "", 400, `"code":"empty_query"`},
+		{"GET", "/api/runs/none", "", "", 404, `"code":"run_not_found"`},
+		{"POST", "/api/runs", "application/json", `{"command":`, 400, `"code":"bad_request"`},
+		{"POST", "/api/runs", "application/json", `{"command":"rm -rf"}`, 400, `"code":"unknown_command","arg":"rm -rf"`},
 		{"POST", "/api/runs", "text/plain", `{"command":"apply"}`, 415, ""},
 		{"GET", "/files/cv/main_acme.pdf", "", "", 200, "%PDF"},
 		{"GET", "/files/profile.md", "", "", 404, ""},
@@ -136,7 +137,7 @@ func TestStartRecordsFailedRun(t *testing.T) {
 	}
 	for i := 0; i < 200; i++ { // the missing executable fails fast
 		if r, _ := s.Run(run.ID); !r.Running {
-			if len(r.Turns) != 2 || !strings.Contains(r.Turns[1].Text, "[erro]") {
+			if len(r.Turns) != 2 || !r.Turns[1].Error {
 				t.Fatalf("want error turn, got %+v", r.Turns)
 			}
 			return

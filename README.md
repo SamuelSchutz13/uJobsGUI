@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img alt="Go" src="https://img.shields.io/badge/Go-1.27-00add8?logo=go&logoColor=white" />
+  <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00add8?logo=go&logoColor=white" />
   <img alt="Gin" src="https://img.shields.io/badge/Gin-1.12-008ecf?logo=go&logoColor=white" />
   <img alt="Echo" src="https://img.shields.io/badge/Echo-4.16-00b4d8?logo=go&logoColor=white" />
   <img alt="Chi" src="https://img.shields.io/badge/Chi-5.5-555555?logo=go&logoColor=white" />
@@ -62,7 +62,7 @@
 You need:
 
 - an **ai-job-search folder already set up**, following its [SETUP.md](https://github.com/ai-job-search-dev/ai-job-search/blob/main/SETUP.md) (Claude Code, Bun, Python and LaTeX);
-- **Go 1.27+** and **Node 22+**, only to build.
+- **Go 1.26+** and **Node 22+**, only to build (an older Go from 1.21 on downloads 1.26 by itself).
 
 ```sh
 git clone https://github.com/SamuelSchutz13/uJobsGUI.git
@@ -104,7 +104,7 @@ internal/core  →  job_search_tracker.csv, job_scraper/seen_jobs.json, cv/, cov
 - **One core, three routers.** All the logic sits in `internal/core`, which knows nothing about HTTP frameworks. `gin.go`, `echo.go` and `chi.go` each wire the same routes to it.
 - **Nothing reimplemented.** Job data comes from the files ai-job-search writes; searches and commands run its own tools, in its folder, with its own `.claude/settings.json` permissions.
 - **Careful writes.** Removing a job changes only that entry's `status` and replaces the file atomically, the same way ai-job-search's `rank_state.py` does.
-- **Languages** live in `web/src/i18n.js`; switching also switches Quasar's own texts. **Theme and language** are remembered in the browser.
+- **Languages** live in `web/src/i18n.js`; switching also switches Quasar's own texts. Server errors arrive with a code (`unknown_command`, `portal_not_found`…) that the page shows in your language, with English as the fallback. **Theme and language** are remembered in the browser.
 
 ### Security
 
@@ -141,7 +141,6 @@ web/
 - **Runs live in memory.** Restarting the server forgets the Commands list (the files ai-job-search wrote stay).
 - **Restore** does not know the status a job had before it was removed: a scored job goes back to Scored, any other to the `/rank` queue. **Undo**, right after removing, restores it exactly.
 - The job boards that ship with ai-job-search are mostly Danish, plus LinkedIn and Freehire. Use `/add-portal` in ai-job-search to add one for your country.
-- Messages that come from the server (errors) are in Portuguese.
 
 ## Credits
 

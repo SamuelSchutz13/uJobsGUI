@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img alt="Go" src="https://img.shields.io/badge/Go-1.27-00add8?logo=go&logoColor=white" />
+  <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00add8?logo=go&logoColor=white" />
   <img alt="Gin" src="https://img.shields.io/badge/Gin-1.12-008ecf?logo=go&logoColor=white" />
   <img alt="Echo" src="https://img.shields.io/badge/Echo-4.16-00b4d8?logo=go&logoColor=white" />
   <img alt="Chi" src="https://img.shields.io/badge/Chi-5.5-555555?logo=go&logoColor=white" />
@@ -62,7 +62,7 @@
 Você precisa de:
 
 - uma **pasta do ai-job-search já configurada**, seguindo o [SETUP.md](https://github.com/ai-job-search-dev/ai-job-search/blob/main/SETUP.md) dele (Claude Code, Bun, Python e LaTeX);
-- **Go 1.27+** e **Node 22+**, só para compilar.
+- **Go 1.26+** e **Node 22+**, só para compilar (um Go mais antigo, a partir do 1.21, baixa o 1.26 sozinho).
 
 ```sh
 git clone https://github.com/SamuelSchutz13/uJobsGUI.git
@@ -104,7 +104,7 @@ internal/core  →  job_search_tracker.csv, job_scraper/seen_jobs.json, cv/, cov
 - **Um núcleo, três roteadores.** Toda a lógica fica em `internal/core`, que não conhece framework HTTP nenhum. `gin.go`, `echo.go` e `chi.go` ligam as mesmas rotas a ele.
 - **Nada reimplementado.** Os dados vêm dos arquivos que o ai-job-search grava; buscas e comandos rodam as ferramentas dele, na pasta dele, com as permissões do `.claude/settings.json` dele.
 - **Escrita cuidadosa.** Remover uma vaga muda só o `status` daquela entrada e troca o arquivo de forma atômica, como o `rank_state.py` do ai-job-search faz.
-- **Idiomas** ficam em `web/src/i18n.js`; trocar o idioma também troca os textos do próprio Quasar. **Tema e idioma** ficam lembrados no navegador.
+- **Idiomas** ficam em `web/src/i18n.js`; trocar o idioma também troca os textos do próprio Quasar. Os erros do servidor chegam com um código (`unknown_command`, `portal_not_found`…) que a página mostra no seu idioma, com o inglês como reserva. **Tema e idioma** ficam lembrados no navegador.
 
 ### Segurança
 
@@ -141,7 +141,6 @@ web/
 - **As execuções ficam na memória.** Reiniciar o servidor esquece a lista de Comandos (os arquivos que o ai-job-search gravou continuam lá).
 - **Restaurar** não sabe a situação que a vaga tinha antes de ser removida: uma vaga pontuada volta para Pontuadas, as outras para a fila do `/rank`. O **Desfazer**, logo depois de remover, volta exatamente como estava.
 - Os portais que vêm com o ai-job-search são quase todos dinamarqueses, mais LinkedIn e Freehire. Use o `/add-portal` do ai-job-search para adicionar um do seu país.
-- Mensagens que vêm do servidor (erros) ficam em português.
 
 ## Créditos
 

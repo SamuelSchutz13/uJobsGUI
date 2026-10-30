@@ -29,9 +29,20 @@ var (
 	ErrBadInput = errors.New("bad input")
 )
 
-func bad(format string, a ...any) error {
-	return fmt.Errorf("%w: "+format, append([]any{ErrBadInput}, a...)...)
+// Error is a failure the user sees. Code lets the frontend say it in the viewer's
+// language; Msg is the English fallback for logs and other clients.
+type Error struct {
+	Kind error  // ErrBadInput or ErrNotFound
+	Code string // e.g. "unknown_command"
+	Arg  string // the value the message names, if any
+	Msg  string
 }
+
+func (e *Error) Error() string { return e.Msg }
+func (e *Error) Unwrap() error { return e.Kind }
+
+func bad(code, arg, msg string) error      { return &Error{ErrBadInput, code, arg, msg} }
+func notFound(code, arg, msg string) error { return &Error{ErrNotFound, code, arg, msg} }
 
 // Service is the framework-agnostic API every router adapter calls.
 type Service struct {
@@ -49,7 +60,7 @@ func New(root, claude, bun string) (*Service, error) {
 		return nil, err
 	}
 	if _, err := os.Stat(filepath.Join(root, ".claude", "commands", "apply.md")); err != nil {
-		return nil, fmt.Errorf("%s não parece um checkout do ai-job-search (falta .claude/commands/apply.md)", root)
+		return nil, fmt.Errorf("%s does not look like an ai-job-search folder (no .claude/commands/apply.md)", root)
 	}
 	return &Service{Root: root, Claude: claude, Bun: bun, runs: map[string]*Run{}}, nil
 }
@@ -128,14 +139,14 @@ var jobStatuses = []string{"new", "skipped", "ranked", "expired", "unreachable"}
 // "remove" is status "skipped": /rank never selects it and /scrape still dedups against it.
 func (s *Service) SetJobStatus(key, status string) error {
 	if !slices.Contains(jobStatuses, status) {
-		return bad("situação %q inválida", status)
+		return bad("bad_status", status, fmt.Sprintf("invalid status %q", status))
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	path := filepath.Join(s.Root, "job_scraper", "seen_jobs.json")
 	data, err := os.ReadFile(path)
 	if errors.Is(err, fs.ErrNotExist) {
-		return ErrNotFound
+		return notFound("no_jobs_file", "", "job_scraper/seen_jobs.json does not exist yet")
 	}
 	if err != nil {
 		return err
@@ -153,7 +164,7 @@ func (s *Service) SetJobStatus(key, status string) error {
 	}
 	var entry map[string]json.RawMessage
 	if raw, ok := seen[key]; !ok || json.Unmarshal(raw, &entry) != nil {
-		return fmt.Errorf("%w: vaga %q", ErrNotFound, key)
+		return notFound("job_not_found", key, fmt.Sprintf("job %q not found", key))
 	}
 	entry["status"], _ = json.Marshal(status)
 	if seen[key], err = marshal(entry); err != nil {
@@ -217,10 +228,10 @@ func (s *Service) Search(ctx context.Context, portal, query string) (json.RawMes
 		return nil, err
 	}
 	if !slices.Contains(portals, portal) {
-		return nil, fmt.Errorf("%w: portal %q", ErrNotFound, portal)
+		return nil, notFound("portal_not_found", portal, fmt.Sprintf("job board %q not found", portal))
 	}
 	if strings.TrimSpace(query) == "" {
-		return nil, bad("informe a busca")
+		return nil, bad("empty_query", "", "type something to search for")
 	}
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
@@ -231,12 +242,12 @@ func (s *Service) Search(ctx context.Context, portal, query string) (json.RawMes
 	if err := cmd.Run(); err != nil {
 		// The CLIs write {"error","code"} to stderr; pass it on rather than a bare exit code.
 		if msg := strings.TrimSpace(stderr.String()); msg != "" {
-			return nil, bad("%s", msg)
+			return nil, bad("portal_failed", msg, portal+" failed: "+msg)
 		}
 		return nil, fmt.Errorf("%s: %w", portal, err)
 	}
 	if !json.Valid(stdout.Bytes()) {
-		return nil, fmt.Errorf("%s devolveu JSON inválido", portal)
+		return nil, fmt.Errorf("%s returned invalid JSON", portal)
 	}
 	return stdout.Bytes(), nil
 }
@@ -267,8 +278,9 @@ func (s *Service) Commands() ([]string, error) {
 
 // Turn is one message in a run's conversation.
 type Turn struct {
-	Role string `json:"role"` // "user" or "claude"
-	Text string `json:"text"`
+	Role  string `json:"role"` // "user" or "claude"
+	Text  string `json:"text"`
+	Error bool   `json:"error,omitempty"` // claude exited with an error; Text holds its output and stderr
 }
 
 // Run is one Claude Code session started from the GUI; replies resume the same session.
@@ -287,7 +299,7 @@ func (s *Service) Start(command, args string) (Run, error) {
 		return Run{}, err
 	}
 	if !slices.Contains(cmds, command) {
-		return Run{}, bad("comando desconhecido %q", command)
+		return Run{}, bad("unknown_command", command, fmt.Sprintf("unknown command %q", command))
 	}
 	r := &Run{ID: uuid(), Command: command, Started: time.Now()}
 	s.mu.Lock()
@@ -299,13 +311,13 @@ func (s *Service) Start(command, args string) (Run, error) {
 // Reply answers a question Claude asked, in the same session.
 func (s *Service) Reply(id, message string) (Run, error) {
 	if strings.TrimSpace(message) == "" {
-		return Run{}, bad("mensagem vazia")
+		return Run{}, bad("empty_message", "", "the message is empty")
 	}
 	s.mu.Lock()
 	r, ok := s.runs[id]
 	s.mu.Unlock()
 	if !ok {
-		return Run{}, ErrNotFound
+		return Run{}, notFound("run_not_found", id, "run not found")
 	}
 	return s.turn(r, message, "--resume", id)
 }
@@ -314,10 +326,10 @@ func (s *Service) turn(r *Run, prompt string, session ...string) (Run, error) {
 	s.mu.Lock()
 	if r.Running {
 		s.mu.Unlock()
-		return Run{}, bad("o Claude ainda está respondendo")
+		return Run{}, bad("busy", "", "Claude is still answering")
 	}
 	r.Running = true
-	r.Turns = append(r.Turns, Turn{"user", prompt})
+	r.Turns = append(r.Turns, Turn{Role: "user", Text: prompt})
 	snap := snapshot(r)
 	s.mu.Unlock()
 
@@ -333,10 +345,10 @@ func (s *Service) turn(r *Run, prompt string, session ...string) (Run, error) {
 		out, err := cmd.Output()
 		text := strings.TrimSpace(string(out))
 		if err != nil {
-			text = strings.TrimSpace(text + "\n\n[erro] " + err.Error() + "\n" + stderr.String())
+			text = strings.TrimSpace(text + "\n\n" + err.Error() + "\n" + stderr.String())
 		}
 		s.mu.Lock()
-		r.Turns = append(r.Turns, Turn{"claude", text})
+		r.Turns = append(r.Turns, Turn{Role: "claude", Text: text, Error: err != nil})
 		r.Running = false
 		s.mu.Unlock()
 	}()
@@ -348,7 +360,7 @@ func (s *Service) Run(id string) (Run, error) {
 	defer s.mu.Unlock()
 	r, ok := s.runs[id]
 	if !ok {
-		return Run{}, ErrNotFound
+		return Run{}, notFound("run_not_found", id, "run not found")
 	}
 	return snapshot(r), nil
 }

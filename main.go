@@ -16,15 +16,15 @@ import (
 )
 
 func main() {
-	root := flag.String("root", os.Getenv("AI_JOB_SEARCH_DIR"), "pasta do checkout do ai-job-search (ou $AI_JOB_SEARCH_DIR)")
-	router := flag.String("router", "chi", "framework HTTP: "+strings.Join(api.Routers, ", "))
-	addr := flag.String("addr", "127.0.0.1:8080", "endereço de escuta (mantenha em loopback)")
-	claude := flag.String("claude", "claude", "executável do Claude Code")
-	bun := flag.String("bun", "bun", "executável do Bun")
+	root := flag.String("root", os.Getenv("AI_JOB_SEARCH_DIR"), "ai-job-search folder (or $AI_JOB_SEARCH_DIR)")
+	router := flag.String("router", "chi", "HTTP framework: "+strings.Join(api.Routers, ", "))
+	addr := flag.String("addr", "127.0.0.1:8080", "listen address (keep it on loopback)")
+	claude := flag.String("claude", "claude", "Claude Code executable")
+	bun := flag.String("bun", "bun", "Bun executable")
 	flag.Parse()
 
 	if *root == "" {
-		fmt.Fprintln(os.Stderr, "informe --root com a pasta do ai-job-search")
+		fmt.Fprintln(os.Stderr, "set --root to your ai-job-search folder")
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -36,6 +36,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("ujobs (%s) em http://%s usando %s", *router, *addr, s.Root)
+	log.Printf("ujobs (%s) on http://%s using %s", *router, *addr, s.Root)
 	log.Fatal(http.ListenAndServe(*addr, h))
 }
