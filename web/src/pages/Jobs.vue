@@ -2,12 +2,12 @@
   <q-page class="canvas">
     <div class="title-row">
       <div>
-        <h1>Vagas encontradas</h1>
+        <h1>{{ t('jobs.title') }}</h1>
         <p class="finding" v-html="finding" />
       </div>
       <div class="actions">
-        <q-btn unelevated color="primary" icon="o_travel_explore" label="Buscar vagas novas" :to="{ path: '/claude', query: { command: 'scrape' } }" />
-        <q-btn unelevated class="btn-secondary" label="Pontuar com /rank" :to="{ path: '/claude', query: { command: 'rank' } }" />
+        <q-btn unelevated color="primary" icon="o_travel_explore" :label="t('jobs.scrape')" :to="{ path: '/claude', query: { command: 'scrape' } }" />
+        <q-btn unelevated class="btn-secondary" :label="t('jobs.rank')" :to="{ path: '/claude', query: { command: 'rank' } }" />
       </div>
     </div>
 
@@ -16,14 +16,14 @@
         <q-tabs v-model="view" dense no-caps inline-label class="views" align="left">
           <q-tab v-for="v in views" :key="v.id" :name="v.id" :label="`${v.label} ${v.rows.length}`" />
         </q-tabs>
-        <q-input v-model="filter" dense outlined debounce="200" placeholder="Filtrar" aria-label="Filtrar" style="width: 220px">
+        <q-input v-model="filter" dense outlined debounce="200" :placeholder="t('filter')" :aria-label="t('filter')" style="width: 220px">
           <template #prepend><q-icon name="o_search" size="18px" /></template>
         </q-input>
       </div>
       <q-table class="ledger" flat :rows="shown" :columns="columns" row-key="key" :loading="loading"
                :filter="filter" :pagination="{ rowsPerPage: 25, sortBy: 'score', descending: true }"
                :rows-per-page-options="[25, 50, 0]" hide-bottom-space
-               :no-data-label="rows.length ? 'Nada nesta visão.' : 'Nenhuma vaga ainda. Use Buscar vagas novas.'">
+               :no-data-label="rows.length ? t('jobs.emptyView') : t('jobs.empty')">
         <template #body-cell-title="p">
           <q-td :props="p">
             <span class="cell-main">{{ p.row.title }}</span>
@@ -48,21 +48,21 @@
         <template #body-cell-actions="p">
           <q-td :props="p">
             <span class="gt-xs">
-              <a v-if="p.row.url" class="row-link" :href="p.row.url" target="_blank" rel="noopener noreferrer">Abrir</a>
-              <q-btn v-if="p.row.url && p.row.status !== 'expired'" flat dense no-caps size="md" label="Candidatar"
+              <a v-if="p.row.url" class="row-link" :href="p.row.url" target="_blank" rel="noopener noreferrer">{{ t('jobs.open') }}</a>
+              <q-btn v-if="p.row.url && p.row.status !== 'expired'" flat dense no-caps size="md" :label="t('jobs.apply')"
                      :to="{ path: '/claude', query: { command: 'apply', args: p.row.url } }" />
-              <q-btn v-if="p.row.status === 'skipped'" flat dense no-caps label="Restaurar" @click="restore(p.row)" />
-              <q-btn v-else flat round dense size="sm" icon="o_close" :aria-label="`Remover ${p.row.title} do painel`" @click="remove(p.row)">
-                <q-tooltip>Remover do painel</q-tooltip>
+              <q-btn v-if="p.row.status === 'skipped'" flat dense no-caps :label="t('jobs.restore')" @click="restore(p.row)" />
+              <q-btn v-else flat round dense size="sm" icon="o_close" :aria-label="t('jobs.removeAria', { title: p.row.title })" @click="remove(p.row)">
+                <q-tooltip>{{ t('jobs.remove') }}</q-tooltip>
               </q-btn>
             </span>
-            <q-btn class="lt-sm" flat round dense icon="o_more_horiz" :aria-label="`Ações para ${p.row.title}`">
+            <q-btn class="lt-sm" flat round dense icon="o_more_horiz" :aria-label="t('jobs.actionsAria', { title: p.row.title })">
               <q-menu auto-close>
                 <q-list style="min-width: 180px">
-                  <q-item v-if="p.row.url" clickable tag="a" :href="p.row.url" target="_blank" rel="noopener noreferrer"><q-item-section>Abrir vaga</q-item-section></q-item>
-                  <q-item v-if="p.row.url && p.row.status !== 'expired'" clickable :to="{ path: '/claude', query: { command: 'apply', args: p.row.url } }"><q-item-section>Candidatar</q-item-section></q-item>
-                  <q-item v-if="p.row.status === 'skipped'" clickable @click="restore(p.row)"><q-item-section>Restaurar</q-item-section></q-item>
-                  <q-item v-else clickable @click="remove(p.row)"><q-item-section>Remover do painel</q-item-section></q-item>
+                  <q-item v-if="p.row.url" clickable tag="a" :href="p.row.url" target="_blank" rel="noopener noreferrer"><q-item-section>{{ t('jobs.openPosting') }}</q-item-section></q-item>
+                  <q-item v-if="p.row.url && p.row.status !== 'expired'" clickable :to="{ path: '/claude', query: { command: 'apply', args: p.row.url } }"><q-item-section>{{ t('jobs.apply') }}</q-item-section></q-item>
+                  <q-item v-if="p.row.status === 'skipped'" clickable @click="restore(p.row)"><q-item-section>{{ t('jobs.restore') }}</q-item-section></q-item>
+                  <q-item v-else clickable @click="remove(p.row)"><q-item-section>{{ t('jobs.remove') }}</q-item-section></q-item>
                 </q-list>
               </q-menu>
             </q-btn>
@@ -77,6 +77,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { Notify } from 'quasar'
 import { get, post, deadlineText } from '../api.js'
+import { t } from '../i18n.js'
 
 const rows = ref([])
 const loading = ref(true)
@@ -86,15 +87,15 @@ const view = ref('ranked')
 // rank_score is written by tools/rank_state.py; entries not yet ranked have none.
 const score = r => typeof r.rank_score === 'number' ? Math.round(r.rank_score) : null
 const loc = r => typeof r.location === 'string' ? r.location : ''
-const LABELS = { ranked: 'Pontuada', new: 'Nova', skipped: 'Removida', expired: 'Expirada', unreachable: 'Fora do ar' }
-const statusLabel = s => LABELS[s] || s || '—'
+const LABELS = { ranked: 'jobs.stRanked', new: 'jobs.stNew', skipped: 'jobs.stSkipped', expired: 'jobs.stExpired', unreachable: 'jobs.stUnreachable' }
+const statusLabel = s => LABELS[s] ? t(LABELS[s]) : s || '—'
 
 const views = computed(() => [
-  { id: 'ranked', label: 'Pontuadas', rows: rows.value.filter(r => r.status === 'ranked') },
+  { id: 'ranked', label: t('jobs.viewRanked'), rows: rows.value.filter(r => r.status === 'ranked') },
   // /rank picks up "new" and "unreachable"; "skipped" is what the scraper (and Remover) set aside.
-  { id: 'new', label: 'Não pontuadas', rows: rows.value.filter(r => ['new', 'unreachable'].includes(r.status)) },
-  { id: 'all', label: 'Todas', rows: rows.value.filter(r => r.status !== 'skipped') },
-  { id: 'skipped', label: 'Removidas', rows: rows.value.filter(r => r.status === 'skipped') }
+  { id: 'new', label: t('jobs.viewNew'), rows: rows.value.filter(r => ['new', 'unreachable'].includes(r.status)) },
+  { id: 'all', label: t('all'), rows: rows.value.filter(r => r.status !== 'skipped') },
+  { id: 'skipped', label: t('jobs.viewSkipped'), rows: rows.value.filter(r => r.status === 'skipped') }
 ])
 const shown = computed(() => views.value.find(v => v.id === view.value).rows)
 
@@ -108,31 +109,31 @@ async function remove (row) {
   const before = row.status
   await setStatus(row, 'skipped')
   Notify.create({
-    message: `${row.title} removida do painel.`,
+    message: t('jobs.removed', { title: row.title }),
     color: 'dark',
-    actions: [{ label: 'Desfazer', color: 'white', handler: () => setStatus(row, before) }]
+    actions: [{ label: t('jobs.undo'), color: 'white', handler: () => setStatus(row, before) }]
   })
 }
 
 // The status it had before is not stored, so a restored posting goes back to the /rank queue.
 const restore = row => setStatus(row, typeof row.rank_score === 'number' ? 'ranked' : 'new')
 
-const columns = [
-  { name: 'title', label: 'Vaga', field: r => `${r.title} ${r.company} ${loc(r)}`, sortable: true, align: 'left' },
-  { name: 'status', label: 'Situação', field: 'status', sortable: true, align: 'left', classes: 'gt-xs', headerClasses: 'gt-xs' },
-  { name: 'score', label: 'Fit', field: score, sortable: true, align: 'right', sort: (a, b) => (a ?? -1) - (b ?? -1) },
-  { name: 'deadline', label: 'Prazo', field: 'deadline', sortable: true, align: 'right', classes: 'gt-xs', headerClasses: 'gt-xs' },
+const columns = computed(() => [
+  { name: 'title', label: t('jobs.colJob'), field: r => `${r.title} ${r.company} ${loc(r)}`, sortable: true, align: 'left' },
+  { name: 'status', label: t('apps.colStatus'), field: 'status', sortable: true, align: 'left', classes: 'gt-xs', headerClasses: 'gt-xs' },
+  { name: 'score', label: t('apps.colFit'), field: score, sortable: true, align: 'right', sort: (a, b) => (a ?? -1) - (b ?? -1) },
+  { name: 'deadline', label: t('apps.colDeadline'), field: 'deadline', sortable: true, align: 'right', classes: 'gt-xs', headerClasses: 'gt-xs' },
   { name: 'actions', label: '', field: () => '', align: 'right' }
-]
+])
 
 const finding = computed(() => {
-  if (loading.value) return 'Carregando…'
-  if (!rows.value.length) return 'O /scrape guarda aqui cada vaga que encontra nos portais.'
+  if (loading.value) return t('loading')
+  if (!rows.value.length) return t('jobs.findingEmpty')
   const ranked = views.value[0].rows
   const fresh = views.value[1].rows.length
   const strong = ranked.filter(r => score(r) >= 80).length
-  const parts = [`<b>${strong}</b> de ${ranked.length} pontuadas com fit 80 ou mais`]
-  if (fresh) parts.push(`${fresh} ainda sem pontuação`)
+  const parts = [t('jobs.findingStrong', { strong: `<b>${strong}</b>`, total: ranked.length })]
+  if (fresh) parts.push(t('jobs.findingFresh', { n: fresh }))
   return parts.join(', ') + '.'
 })
 

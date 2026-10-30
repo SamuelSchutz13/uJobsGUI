@@ -1,21 +1,21 @@
 <template>
   <q-page class="inbox" :class="{ 'has-open': open }">
-    <aside class="runs" aria-label="Execuções">
+    <aside class="runs" :aria-label="t('cmd.runs')">
       <div class="runs-head">
-        <h1>Comandos</h1>
-        <q-btn unelevated color="primary" icon="o_add" label="Novo" :to="{ path: '/claude', query: { novo: 1 } }" />
+        <h1>{{ t('cmd.title') }}</h1>
+        <q-btn unelevated color="primary" icon="o_add" :label="t('cmd.new')" :to="{ path: '/claude', query: { novo: 1 } }" />
       </div>
-      <div v-if="!runs.length" class="runs-empty muted">Nenhuma execução nesta sessão do servidor.</div>
+      <div v-if="!runs.length" class="runs-empty muted">{{ t('cmd.noRuns') }}</div>
       <router-link v-for="r in runs" :key="r.id" :to="`/claude/${r.id}`" class="run" :class="{ active: run?.id === r.id }">
         <div class="run-line">
           <span class="run-cmd">/{{ r.command }}</span>
           <span class="run-time num">{{ ago(r.started) }}</span>
         </div>
         <div class="run-sub">
-          <span class="run-arg">{{ firstArg(r) || 'sem argumentos' }}</span>
-          <span v-if="r.running" class="pill neutral">Rodando</span>
-          <span v-else-if="lastIsError(r)" class="pill negative">Erro</span>
-          <span v-else-if="r.turns.length > 1" class="pill neutral">{{ (r.turns.length / 2) | 0 }} {{ r.turns.length > 3 ? 'respostas' : 'resposta' }}</span>
+          <span class="run-arg">{{ firstArg(r) || t('cmd.noArgs') }}</span>
+          <span v-if="r.running" class="pill neutral">{{ t('cmd.running') }}</span>
+          <span v-else-if="lastIsError(r)" class="pill negative">{{ t('cmd.error') }}</span>
+          <span v-else-if="r.turns.length > 1" class="pill neutral">{{ r.turns.length > 3 ? t('cmd.replyN', { n: (r.turns.length / 2) | 0 }) : t('cmd.reply1') }}</span>
         </div>
       </router-link>
     </aside>
@@ -23,20 +23,20 @@
     <section class="open">
       <q-form v-if="!run" class="new-run" @submit="start">
         <div class="open-head">
-          <q-btn flat round dense icon="o_arrow_back" class="lt-md" aria-label="Voltar para a lista" @click="open = false" />
-          <h2>Rodar um comando do ai-job-search</h2>
+          <q-btn flat round dense icon="o_arrow_back" class="lt-md" :aria-label="t('cmd.back')" @click="open = false" />
+          <h2>{{ t('cmd.heading') }}</h2>
         </div>
-        <q-select v-model="command" :options="commands" label="Comando" outlined dense :option-label="c => '/' + c" />
-        <p v-if="HINTS[command]" class="hint">{{ HINTS[command] }}</p>
-        <q-input v-model="args" label="Argumentos" outlined autogrow />
+        <q-select v-model="command" :options="commands" :label="t('cmd.command')" outlined dense :option-label="c => '/' + c" />
+        <p v-if="command && has('hint.' + command)" class="hint">{{ t('hint.' + command) }}</p>
+        <q-input v-model="args" :label="t('cmd.args')" outlined autogrow />
         <div class="row items-center q-gutter-md">
-          <q-btn type="submit" unelevated color="primary" icon="o_play_arrow" label="Rodar" :disable="!command" :loading="busy" />
-          <span class="muted">Roda <code>claude -p "/{{ command || 'comando' }} …"</code> na pasta do ai-job-search, com as permissões dele.</span>
+          <q-btn type="submit" unelevated color="primary" icon="o_play_arrow" :label="t('cmd.run')" :disable="!command" :loading="busy" />
+          <span class="muted">{{ t('cmd.runsPre') }} <code>claude -p "/{{ command || t('cmd.command').toLowerCase() }} …"</code> {{ t('cmd.runsPost') }}</span>
         </div>
       </q-form>
 
       <section v-if="!run" class="reference" aria-labelledby="ref-title">
-        <h2 id="ref-title">O que cada comando faz</h2>
+        <h2 id="ref-title">{{ t('cmd.refTitle') }}</h2>
         <button v-for="c in reference" :key="c.id" type="button" class="ref-row" :class="{ active: command === c.id }" @click="command = c.id">
           <span class="ref-cmd">/{{ c.id }}</span>
           <span class="ref-desc">{{ c.desc }}</span>
@@ -45,23 +45,23 @@
 
       <template v-else>
         <div class="open-head">
-          <q-btn flat round dense icon="o_arrow_back" class="lt-md" aria-label="Voltar para a lista" to="/claude" />
+          <q-btn flat round dense icon="o_arrow_back" class="lt-md" :aria-label="t('cmd.back')" to="/claude" />
           <h2>/{{ run.command }}</h2>
-          <span class="muted num">{{ new Date(run.started).toLocaleString('pt-BR') }}</span>
+          <span class="muted num">{{ new Date(run.started).toLocaleString(locale()) }}</span>
         </div>
         <div class="thread">
-          <div v-for="(t, i) in run.turns" :key="i" class="turn" :class="t.role">
-            <div class="who">{{ t.role === 'user' ? 'Você' : 'Claude' }}</div>
-            <div class="text">{{ t.text }}</div>
+          <div v-for="(turn, i) in run.turns" :key="i" class="turn" :class="turn.role">
+            <div class="who">{{ turn.role === 'user' ? t('cmd.you') : 'Claude' }}</div>
+            <div class="text">{{ turn.text }}</div>
           </div>
           <div v-if="run.running" class="turn claude working">
             <div class="who">Claude</div>
-            <div class="text muted"><q-spinner-dots size="20px" /> Trabalhando. O /apply costuma levar alguns minutos.</div>
+            <div class="text muted"><q-spinner-dots size="20px" /> {{ t('cmd.working') }}</div>
           </div>
         </div>
         <q-form v-if="!run.running" class="composer" @submit="reply">
-          <q-input v-model="message" outlined autogrow dense placeholder="Responder ao Claude" aria-label="Responder ao Claude" class="col" @keydown.enter.exact.prevent="message.trim() && reply()" />
-          <q-btn type="submit" unelevated color="primary" label="Enviar" :disable="!message.trim()" :loading="busy" />
+          <q-input v-model="message" outlined autogrow dense :placeholder="t('cmd.reply')" :aria-label="t('cmd.reply')" class="col" @keydown.enter.exact.prevent="message.trim() && reply()" />
+          <q-btn type="submit" unelevated color="primary" :label="t('cmd.send')" :disable="!message.trim()" :loading="busy" />
         </q-form>
       </template>
     </section>
@@ -73,6 +73,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { get, post } from '../api.js'
+import { t, has, locale } from '../i18n.js'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -86,43 +87,17 @@ const message = ref('')
 const busy = ref(false)
 const open = ref(!!(route.query.command || route.query.novo))
 
-const HINTS = {
-  apply: 'URL da vaga, ou o texto completo da vaga colado.',
-  scrape: 'Opcional: um foco para a busca, como "remoto" ou "dados".',
-  rank: 'Opcional: --all para pontuar tudo, ou um número para limitar.',
-  interview: 'Empresa e vaga de uma candidatura registrada.',
-  outcome: 'Empresa e vaga, ou "followup" para ver as que estão paradas.',
-  setup: 'Sem argumentos. O Claude vai perguntar o que precisar.',
-  reset: 'Apaga dados do seu perfil. Você vai confirmar antes.'
-}
-
-// Short descriptions from the ai-job-search README; commands not listed here still run.
-const DESC = {
-  setup: 'Monta seu perfil a partir dos documentos, de um CV colado ou de uma entrevista.',
-  scrape: 'Busca nos portais as vagas que combinam com seu perfil.',
-  rank: 'Pontua em lote as vagas encontradas e devolve uma lista curta.',
-  apply: 'Avalia o fit e escreve, revisa e compila CV e carta sob medida.',
-  interview: 'Prepara a entrevista de uma candidatura e faz uma simulação.',
-  outcome: 'Registra resultados, arquiva o que foi enviado e sugere follow-ups.',
-  upskill: 'Mapeia as lacunas de competência e monta um plano de estudo.',
-  expand: 'Acrescenta competências achadas nos seus perfis públicos.',
-  'html-report': 'Gera um painel offline das suas candidaturas.',
-  'gmail-sync': 'Propõe atualizações de situação a partir do seu Gmail.',
-  'notion-sync': 'Publica uma visão somente leitura no Notion.',
-  'add-template': 'Registra seu próprio modelo de CV ou carta.',
-  'add-portal': 'Gera um buscador para um portal de vagas do seu país.',
-  reset: 'Apaga dados do perfil ou documentos.'
-}
-const reference = computed(() => commands.value.filter(c => DESC[c]).map(id => ({ id, desc: DESC[id] })))
+// Short descriptions from the ai-job-search README live in i18n.js; commands without one still run.
+const reference = computed(() => commands.value.filter(c => has('desc.' + c)).map(id => ({ id, desc: t('desc.' + id) })))
 
 const firstArg = r => r.turns[0]?.text.replace(/^\/\S+\s*/, '')
 const lastIsError = r => r.turns.at(-1)?.text.includes('[erro]')
 function ago (iso) {
   const m = Math.round((Date.now() - new Date(iso)) / 60000)
-  if (m < 1) return 'agora'
+  if (m < 1) return t('cmd.now')
   if (m < 60) return `${m} min`
   const h = Math.round(m / 60)
-  return h < 24 ? `${h} h` : new Date(iso).toLocaleDateString('pt-BR')
+  return h < 24 ? `${h} h` : new Date(iso).toLocaleDateString(locale())
 }
 
 async function refresh () {
@@ -143,7 +118,7 @@ watch(() => route.fullPath, () => { if (route.path === '/claude') open.value = !
 
 function confirmReset () {
   return new Promise(resolve => {
-    $q.dialog({ title: '/reset', message: 'Isso apaga dados do seu perfil no ai-job-search. Continuar?', cancel: true })
+    $q.dialog({ title: '/reset', message: t('cmd.resetConfirm'), cancel: true })
       .onOk(() => resolve(true)).onCancel(() => resolve(false))
   })
 }

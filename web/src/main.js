@@ -1,11 +1,11 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { Quasar, Notify, Dialog } from 'quasar'
-import langPtBR from 'quasar/lang/pt-BR'
 import iconSet from 'quasar/icon-set/material-icons-outlined'
 import '@quasar/extras/material-icons-outlined/material-icons-outlined.css'
 import 'quasar/src/css/index.sass'
 import './app.css'
+import { lang, setLang } from './i18n.js'
 
 import App from './App.vue'
 import Applications from './pages/Applications.vue'
@@ -27,10 +27,12 @@ const router = createRouter({
 createApp(App)
   .use(Quasar, {
     plugins: { Notify, Dialog },
-    lang: langPtBR,
     iconSet,
     // The chrome is ink: the one primary action is near-black, never a brand hue.
-    config: { dark: 'auto', brand: { primary: '#141414', secondary: '#e5e5e5', negative: '#c4242a', positive: '#2e7d32' } }
+    config: { brand: { primary: '#141414', secondary: '#e5e5e5', negative: '#c4242a', positive: '#2e7d32' } }
   })
   .use(router)
   .mount('#app')
+
+// After Quasar's install, which would reset its own language pack.
+setLang(lang.value)
