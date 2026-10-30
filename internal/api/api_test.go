@@ -28,7 +28,7 @@ func fakeCheckout(t *testing.T) string {
 	write(".claude/skills/job-scraper/SKILL.md", "---\nname: scrape\n---\n")
 	write(".agents/skills/jobindex-search/cli/src/cli.ts", "")
 	write("job_search_tracker.csv", "\xef\xbb\xbfdate,company,role,status,cv_file\n2026-10-01,Acme,Engineer,drafted,cv/main_acme.pdf\n2026-10-02,Old,Dev\n")
-	write("job_scraper/seen_jobs.json", `{"seen":{"k1":{"title":"Dev","company":"Acme","status":"ranked"}}}`)
+	write("job_scraper/seen_jobs.json", `{"version":2,"seen":{"k1":{"title":"Dev","company":"Acme","status":"ranked","rank_score":81}}}`)
 	write("cv/main_acme.pdf", "%PDF")
 	write("profile.md", "secret")
 	return root
@@ -52,6 +52,11 @@ func TestRoutersAgree(t *testing.T) {
 		{"GET", "/api/tracker", "", "", 200, `"company":"Old"`},
 		{"GET", "/api/jobs", "", "", 200, `"key":"k1"`},
 		{"GET", "/api/portals", "", "", 200, `["jobindex-search"]`},
+		{"POST", "/api/jobs/status", "application/json", `{"key":"k1","status":"skipped"}`, 200, `"status":"skipped"`},
+		{"GET", "/api/jobs", "", "", 200, `"status":"skipped"`},
+		{"POST", "/api/jobs/status", "application/json", `{"key":"k1","status":"ranked"}`, 200, `"status":"ranked"`},
+		{"POST", "/api/jobs/status", "application/json", `{"key":"k1","status":"deleted"}`, 400, "inválida"},
+		{"POST", "/api/jobs/status", "application/json", `{"key":"nope","status":"skipped"}`, 404, "error"},
 		{"GET", "/api/commands", "", "", 200, `["apply","scrape"]`},
 		{"GET", "/api/search?portal=nope&q=x", "", "", 404, "error"},
 		{"GET", "/api/search?portal=jobindex-search&q=", "", "", 400, "error"},
@@ -90,6 +95,27 @@ func TestRoutersAgree(t *testing.T) {
 		if rec.Code != http.StatusForbidden {
 			t.Errorf("%s: foreign host got %d", router, rec.Code)
 		}
+	}
+}
+
+// Removing a posting must keep the rest of the file the scraper owns.
+func TestSetJobStatusKeepsFields(t *testing.T) {
+	root := fakeCheckout(t)
+	s, _ := core.New(root, "", "")
+	if err := s.SetJobStatus("k1", "skipped"); err != nil {
+		t.Fatal(err)
+	}
+	data, _ := os.ReadFile(filepath.Join(root, "job_scraper", "seen_jobs.json"))
+	var doc struct {
+		Version int                       `json:"version"`
+		Seen    map[string]map[string]any `json:"seen"`
+	}
+	if err := json.Unmarshal(data, &doc); err != nil {
+		t.Fatal(err)
+	}
+	e := doc.Seen["k1"]
+	if doc.Version != 2 || e["status"] != "skipped" || e["rank_score"] != 81.0 || e["company"] != "Acme" {
+		t.Fatalf("file changed beyond the status: %s", data)
 	}
 }
 
