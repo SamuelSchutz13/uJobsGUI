@@ -16,7 +16,7 @@ func Echo(s *core.Service, static http.Handler) http.Handler {
 
 	reply := func(c echo.Context, v any, err error) error {
 		if err != nil {
-			return c.JSON(Status(err), ErrBody{err.Error()})
+			return c.JSON(Status(err), Body(err))
 		}
 		return c.JSON(http.StatusOK, v)
 	}
@@ -28,7 +28,7 @@ func Echo(s *core.Service, static http.Handler) http.Handler {
 	g.POST("/jobs/status", func(c echo.Context) error {
 		var req JobStatusReq
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, ErrBody{err.Error()})
+			return c.JSON(http.StatusBadRequest, BadRequest(err))
 		}
 		return reply(c, req, s.SetJobStatus(req.Key, req.Status))
 	})
@@ -45,7 +45,7 @@ func Echo(s *core.Service, static http.Handler) http.Handler {
 	g.POST("/runs", func(c echo.Context) error {
 		var req StartReq
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, ErrBody{err.Error()})
+			return c.JSON(http.StatusBadRequest, BadRequest(err))
 		}
 		v, err := s.Start(req.Command, req.Args)
 		return reply(c, v, err)
@@ -54,7 +54,7 @@ func Echo(s *core.Service, static http.Handler) http.Handler {
 	g.POST("/runs/:id/reply", func(c echo.Context) error {
 		var req ReplyReq
 		if err := c.Bind(&req); err != nil {
-			return c.JSON(http.StatusBadRequest, ErrBody{err.Error()})
+			return c.JSON(http.StatusBadRequest, BadRequest(err))
 		}
 		v, err := s.Reply(c.Param("id"), req.Message)
 		return reply(c, v, err)

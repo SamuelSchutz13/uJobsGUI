@@ -145,7 +145,19 @@ const messages = {
     'desc.notion-sync': 'Publica uma visão somente leitura no Notion.',
     'desc.add-template': 'Registra seu próprio modelo de CV ou carta.',
     'desc.add-portal': 'Gera um buscador para um portal de vagas do seu país.',
-    'desc.reset': 'Apaga dados do perfil ou documentos.'
+    'desc.reset': 'Apaga dados do perfil ou documentos.',
+
+    'err.bad_request': 'Pedido inválido.',
+    'err.bad_status': 'Situação inválida: {arg}.',
+    'err.no_jobs_file': 'Ainda não há vagas. Rode /scrape primeiro.',
+    'err.job_not_found': 'Essa vaga não está mais no histórico.',
+    'err.portal_not_found': 'O portal {arg} não está instalado.',
+    'err.empty_query': 'Digite o que buscar.',
+    'err.portal_failed': 'O portal respondeu com erro: {arg}',
+    'err.unknown_command': 'Comando desconhecido: {arg}.',
+    'err.empty_message': 'Escreva uma mensagem.',
+    'err.busy': 'O Claude ainda está respondendo.',
+    'err.run_not_found': 'Essa execução não existe mais. O servidor pode ter reiniciado.'
   },
   en: {
     'nav.main': 'Main',
@@ -288,7 +300,19 @@ const messages = {
     'desc.notion-sync': 'Publishes a read-only view to Notion.',
     'desc.add-template': 'Registers your own CV or cover letter template.',
     'desc.add-portal': 'Generates a search tool for a job board in your country.',
-    'desc.reset': 'Wipes profile data or documents.'
+    'desc.reset': 'Wipes profile data or documents.',
+
+    'err.bad_request': 'Invalid request.',
+    'err.bad_status': 'Invalid status: {arg}.',
+    'err.no_jobs_file': 'No jobs yet. Run /scrape first.',
+    'err.job_not_found': 'That job is no longer in the history.',
+    'err.portal_not_found': 'The {arg} job board is not installed.',
+    'err.empty_query': 'Type something to search for.',
+    'err.portal_failed': 'The job board returned an error: {arg}',
+    'err.unknown_command': 'Unknown command: {arg}.',
+    'err.empty_message': 'Write a message.',
+    'err.busy': 'Claude is still answering.',
+    'err.run_not_found': 'That run no longer exists. The server may have restarted.'
   }
 }
 

@@ -1,5 +1,5 @@
 import { Notify } from 'quasar'
-import { t } from './i18n.js'
+import { t, has } from './i18n.js'
 
 async function call (method, path, body) {
   const res = await fetch(path, {
@@ -9,7 +9,10 @@ async function call (method, path, body) {
   })
   const data = await res.json().catch(() => null)
   if (!res.ok) {
-    const message = data?.error || `${res.status} ${res.statusText}`
+    // The server sends a code for every error it expects; anything else shows its English text.
+    const message = data?.code && has('err.' + data.code)
+      ? t('err.' + data.code, { arg: data.arg })
+      : data?.error || `${res.status} ${res.statusText}`
     Notify.create({ type: 'negative', message })
     throw new Error(message)
   }

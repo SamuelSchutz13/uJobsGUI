@@ -91,7 +91,7 @@ const open = ref(!!(route.query.command || route.query.novo))
 const reference = computed(() => commands.value.filter(c => has('desc.' + c)).map(id => ({ id, desc: t('desc.' + id) })))
 
 const firstArg = r => r.turns[0]?.text.replace(/^\/\S+\s*/, '')
-const lastIsError = r => r.turns.at(-1)?.text.includes('[erro]')
+const lastIsError = r => !!r.turns.at(-1)?.error
 function ago (iso) {
   const m = Math.round((Date.now() - new Date(iso)) / 60000)
   if (m < 1) return t('cmd.now')
